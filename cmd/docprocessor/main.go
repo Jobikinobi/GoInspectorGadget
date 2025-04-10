@@ -8,13 +8,25 @@ import (
 	"strings"
 	"time"
 
-	"github.com/jth/claude/GoCode/pkg/speech"
+	"github.com/jth/claude/GoInspectorGadget/pkg/speech"
 )
 
 func main() {
-	// This function has been moved from process_interview.go to cmd/interview/main.go
-	// as part of the code reorganization
-	processAudio()
+	// Define command-line flags for choosing the processor
+	processorType := flag.String("type", "audio", "Type of processing: 'audio' or 'interview'")
+	flag.Parse()
+
+	// Choose the processor based on the type flag
+	switch *processorType {
+	case "interview":
+		processInterviewAudio()
+	case "audio":
+		processAudio()
+	default:
+		fmt.Printf("Unknown processor type: %s\n", *processorType)
+		flag.Usage()
+		os.Exit(1)
+	}
 }
 
 func processAudio() {

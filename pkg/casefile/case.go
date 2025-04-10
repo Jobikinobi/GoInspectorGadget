@@ -5,61 +5,37 @@ import (
 	"time"
 )
 
-// Status represents the current status of a case
-type Status string
-
+// Case status constants
 const (
-	StatusOpen       Status = "OPEN"
-	StatusClosed     Status = "CLOSED"
-	StatusSuspended  Status = "SUSPENDED"
-	StatusInactive   Status = "INACTIVE"
-	StatusReferred   Status = "REFERRED"
-	StatusProsecuted Status = "PROSECUTED"
+	StatusOpen     = "OPEN"
+	StatusClosed   = "CLOSED"
+	StatusSuspended = "SUSPENDED"
+	StatusCold     = "COLD"
 )
 
-// Priority level of a case
-type Priority int
-
+// Priority levels
 const (
-	PriorityLow Priority = iota + 1
-	PriorityMedium
-	PriorityHigh
-	PriorityCritical
+	PriorityHigh   = "HIGH"
+	PriorityMedium = "MEDIUM"
+	PriorityLow    = "LOW"
 )
 
-// Case represents a police investigation case file
+// Case represents a case file
 type Case struct {
-	ID               string
-	CaseNumber       string // Official case number
-	Title            string
-	Description      string
-	Status           Status
-	Priority         Priority
-	CaseType         string
-	CreatedAt        time.Time
-	UpdatedAt        time.Time
-	AssignedTo       []string // IDs of investigators assigned to the case
-	LeadInvestigator string
-	Jurisdiction     string
-	Location         string
-	IncidentDate     time.Time
-	ReportDate       time.Time
-	Documents        []Document
-}
-
-// Document represents a document in a case file
-type Document struct {
 	ID          string
+	CaseNumber  string
 	Title       string
-	Type        string
 	Description string
-	FilePath    string
-	FileSize    int64
+	CaseType    string
+	Status      string
+	Priority    string
+	AssignedTo  string
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
+	ClosedAt    time.Time
 }
 
-// CaseRepository defines the interface for case storage
+// CaseRepository defines the interface for case data operations
 type CaseRepository interface {
 	Save(c *Case) error
 	Find(id string) (*Case, error)
@@ -70,29 +46,34 @@ type CaseRepository interface {
 	Delete(id string) error
 }
 
-// CaseService provides business logic for case management
+// CaseService provides case management functionality
 type CaseService struct {
 	repo CaseRepository
 }
 
-// NewCaseService creates a new case service
+// NewCaseService creates a new case service with the given repository
 func NewCaseService(repo CaseRepository) *CaseService {
-	return &CaseService{repo: repo}
+	return &CaseService{
+		repo: repo,
+	}
 }
 
 // CreateCase creates a new case
 func (s *CaseService) CreateCase(c *Case) error {
+	// Set default values
 	if c.ID == "" {
 		c.ID = generateID()
 	}
-
-	now := time.Now()
-	c.CreatedAt = now
-	c.UpdatedAt = now
-
 	if c.Status == "" {
 		c.Status = StatusOpen
 	}
+	if c.Priority == "" {
+		c.Priority = PriorityMedium
+	}
+	if c.CreatedAt.IsZero() {
+		c.CreatedAt = time.Now()
+	}
+	c.UpdatedAt = c.CreatedAt
 
 	return s.repo.Save(c)
 }
@@ -102,14 +83,14 @@ func (s *CaseService) GetCase(id string) (*Case, error) {
 	return s.repo.Find(id)
 }
 
-// UpdateCase updates an existing case
+// UpdateCase updates a case
 func (s *CaseService) UpdateCase(c *Case) error {
 	c.UpdatedAt = time.Now()
 	return s.repo.Update(c)
 }
 
 // CloseCase closes a case
-func (s *CaseService) CloseCase(id string, reason string) error {
+func (s *CaseService) CloseCase(id string) error {
 	c, err := s.repo.Find(id)
 	if err != nil {
 		return err
@@ -117,11 +98,22 @@ func (s *CaseService) CloseCase(id string, reason string) error {
 
 	c.Status = StatusClosed
 	c.UpdatedAt = time.Now()
+	c.ClosedAt = c.UpdatedAt
 
 	return s.repo.Update(c)
 }
 
-// generateID generates a unique ID
+// DeleteCase deletes a case
+func (s *CaseService) DeleteCase(id string) error {
+	return s.repo.Delete(id)
+}
+
+// ListCases lists cases with pagination
+func (s *CaseService) ListCases(limit, offset int) ([]*Case, error) {
+	return s.repo.List(limit, offset)
+}
+
+// Helper function to generate a simple ID
 func generateID() string {
-	return fmt.Sprintf("CF-%d", time.Now().UnixNano())
+	return fmt.Sprintf("CASE-%d", time.Now().UnixNano())
 }

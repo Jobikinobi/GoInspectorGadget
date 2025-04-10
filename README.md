@@ -1,98 +1,154 @@
-# Police Investigation Document and Interview Processing System
+# GoInspectorGadget
 
-A Go-based toolkit for managing police investigations, processing evidence, interviews, and documents with specialized multi-accent speech recognition support.
+A comprehensive investigation management system for law enforcement agencies.
 
-## Project Overview
+## Overview
 
-This system is designed to aid law enforcement in managing investigations by providing:
+GoInspectorGadget provides an integrated platform for managing investigations, evidence, documents, interviews, and correspondence. Built with Go, it offers a command-line interface for efficient case management and processing.
 
-1. Case management and evidence tracking
-2. Document processing and analysis
-3. Multi-accent speech recognition for interview transcription
-4. Correspondence management with templates
+## Features
 
-## Key Features
+- **Case Management**: Create, view, and manage investigation cases
+- **Document Processing**: Import, analyze, and extract content from documents
+- **Evidence Tracking**: Record and track physical and digital evidence
+- **Interview Management**: Manage and transcribe interview recordings
+- **Correspondence Handling**: Create and send official correspondence using templates
+- **Audio Processing**: Transcribe audio with support for multiple languages and accents
+
+## Documentation
+
+- [Installation Guide](docs/INSTALLATION.md) - Detailed instructions for installing and configuring the system
+- [User Manual](docs/USER_MANUAL.md) - Comprehensive guide to using all features
+- [Quick Reference](docs/QUICK_REFERENCE.md) - Command reference for common tasks
+- [Developer Guide](docs/DEVELOPER_GUIDE.md) - Guide for extending and contributing to the system
+
+## Installation
+
+### Prerequisites
+
+- Go 1.23.0 or higher
+- FFmpeg (for audio processing)
+
+### Install from Source
+
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/jth/claude/GoInspectorGadget.git
+   cd GoInspectorGadget
+   ```
+
+2. Build the binaries:
+   ```bash
+   go build -o bin/investigator cmd/investigator/main.go
+   go build -o bin/docprocessor cmd/docprocessor/*.go
+   ```
+
+3. Add the binaries to your PATH or move them to a location in your PATH:
+   ```bash
+   export PATH=$PATH:$(pwd)/bin
+   ```
+
+For detailed installation instructions, see the [Installation Guide](docs/INSTALLATION.md).
+
+## Usage
 
 ### Case Management
-- Track case details, status, and assignments
-- Manage evidence and document collection
-- Link cases to suspects, victims, and witnesses
 
-### Document Processing
-- Import and analyze various document types
-- Extract text from PDFs and images
-- Automatic document classification
+Create a new case:
+```bash
+investigator case create --title "Missing Person - John Doe" --desc "Investigation into disappearance of John Doe" --type "Missing Person"
+```
 
-### Speech Recognition
-- Support for multiple accents:
-  - Venezuelan Spanish
-  - American English (with police terminology)
-  - Generic accent fallback
-- Speaker identification and diarization
-- Interview transcription and analysis
+List all cases:
+```bash
+investigator case list
+```
 
-### Correspondence Management
-- Template-based correspondence generation
-- Track communication threads
-- Manage official communications
+Open a specific case:
+```bash
+investigator case open CASE-1234567890
+```
+
+### Document Management
+
+Import a document to a case:
+```bash
+investigator doc import --path "/path/to/document.pdf" --case CASE-1234567890
+```
+
+### Evidence Management
+
+Add evidence to a case:
+```bash
+investigator evidence add --desc "Wallet found at scene" --type "PHYSICAL" --case CASE-1234567890
+```
+
+List evidence for a case:
+```bash
+investigator evidence list CASE-1234567890
+```
+
+### Interview Management
+
+Add an interview:
+```bash
+investigator interview add --title "Witness Interview - Jane Smith" --type "WITNESS" --case CASE-1234567890
+```
+
+Transcribe an interview recording:
+```bash
+investigator interview transcribe --id INT-1234567890
+```
+
+### Correspondence
+
+Create correspondence using a template:
+```bash
+investigator correspondence create --template TEMPLATE-ID --recipient "John Smith" --case CASE-1234567890
+```
+
+List available correspondence templates:
+```bash
+investigator correspondence templates
+```
+
+Send correspondence:
+```bash
+investigator correspondence send --id CORR-1234567890
+```
+
+### Audio Processing
+
+Process an audio file for transcription:
+```bash
+docprocessor --type audio --audio "/path/to/recording.wav" --accent "auto"
+```
+
+Process an interview recording with speaker diarization:
+```bash
+docprocessor --type interview --input "/path/to/interview.wav" --output "transcript.txt"
+```
+
+For more detailed usage instructions, see the [User Manual](docs/USER_MANUAL.md).
 
 ## Project Structure
 
-```
-/GoCode
-├── cmd/                       # Command-line applications
-│   ├── docprocessor/          # Document processing utility
-│   └── investigator/          # Main investigator application
-├── pkg/                       # Library packages
-│   ├── casemanagement/        # Case management functionality
-│   ├── casefile/              # Case file handling
-│   ├── correspondence/        # Communication management
-│   ├── document/              # Document processing
-│   ├── evidence/              # Evidence tracking
-│   ├── interview/             # Interview management
-│   └── speech/                # Speech recognition
-├── go.mod                     # Go module definition
-└── go.sum                     # Go module checksums
-```
-
-## Getting Started
-
-### Prerequisites
-- Go 1.18 or higher
-- FFmpeg for audio processing
-- Poppler for PDF processing
-
-### Installation
-
-```bash
-# Clone the repository
-git clone https://github.com/jth/claude/GoCode.git
-cd GoCode
-
-# Build the investigator tool
-go build ./cmd/investigator
-
-# Build the document processor
-go build ./cmd/docprocessor
-```
-
-### Basic Usage
-
-```bash
-# Create a new case
-./investigator case create --title "Missing Person" --desc "Investigation into missing person report" --type "Missing Person"
-
-# Import a document into a case
-./investigator doc import --path "/path/to/document.pdf" --case <case-id>
-
-# Process an interview recording
-./docprocessor --audio "/path/to/interview.mp3" --accent "venezuelan"
-```
-
-## Import Path Structure
-
-This project uses the module path `github.com/jth/claude/GoCode` for all imports. If forking or modifying the code, you may need to update the import paths to match your repository structure.
+- `cmd/`: Application entry points
+  - `investigator/`: Main investigation management tool
+  - `docprocessor/`: Document and audio processing tool
+- `pkg/`: Core packages and functionality
+  - `casefile/`: Case file management
+  - `casemanagement/`: Case tracking and workflow
+  - `document/`: Document processing and analysis
+  - `evidence/`: Evidence tracking and chain of custody
+  - `interview/`: Interview management and transcription
+  - `correspondence/`: Communication templates and tracking
+  - `speech/`: Speech recognition and transcription
+- `docs/`: Documentation
+  - `INSTALLATION.md`: Detailed installation instructions
+  - `USER_MANUAL.md`: Comprehensive user guide
+  - `QUICK_REFERENCE.md`: Command reference
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+This project is licensed under the terms specified in the LICENSE file.

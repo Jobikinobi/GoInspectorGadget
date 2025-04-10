@@ -3,7 +3,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -29,7 +28,7 @@ func main() {
 	}
 
 	// Create a temporary directory for intermediate files
-	tempDir, err := ioutil.TempDir("", "speech-processing")
+	tempDir, err := os.MkdirTemp("", "speech-processing")
 	if err != nil {
 		fmt.Printf("Error creating temp directory: %v\n", err)
 		os.Exit(1)
@@ -90,7 +89,7 @@ func main() {
 	fmt.Println("Step 4: Combining transcripts with timestamps...")
 
 	// Read diarization output
-	diarizationData, err := ioutil.ReadFile(diarizationOutput)
+	diarizationData, err := os.ReadFile(diarizationOutput)
 	if err != nil {
 		fmt.Printf("Error reading diarization output: %v\n", err)
 		os.Exit(1)
@@ -131,7 +130,7 @@ func main() {
 	}
 
 	// Write the combined transcript to the output file
-	err = ioutil.WriteFile(*outputFile, []byte(combinedTranscript.String()), 0644)
+	err = os.WriteFile(*outputFile, []byte(combinedTranscript.String()), 0644)
 	if err != nil {
 		fmt.Printf("Error writing output file: %v\n", err)
 		os.Exit(1)

@@ -8,12 +8,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Jobikinobi/GoInspectorGadget/pkg/casefile"
-	"github.com/Jobikinobi/GoInspectorGadget/pkg/casemanagement"
-	"github.com/Jobikinobi/GoInspectorGadget/pkg/correspondence"
-	"github.com/Jobikinobi/GoInspectorGadget/pkg/document"
-	"github.com/Jobikinobi/GoInspectorGadget/pkg/evidence"
-	"github.com/Jobikinobi/GoInspectorGadget/pkg/interview"
+	"github.com/jth/claude/GoInspectorGadget/pkg/casefile"
+	"github.com/jth/claude/GoInspectorGadget/pkg/casemanagement"
+	"github.com/jth/claude/GoInspectorGadget/pkg/correspondence"
+	"github.com/jth/claude/GoInspectorGadget/pkg/document"
+	"github.com/jth/claude/GoInspectorGadget/pkg/evidence"
+	"github.com/jth/claude/GoInspectorGadget/pkg/interview"
 )
 
 // Simple in-memory repositories for demonstration
