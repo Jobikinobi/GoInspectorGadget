@@ -8,12 +8,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/jth/claude/GoCode/pkg/casefile"
-	"github.com/jth/claude/GoCode/pkg/casemanagement"
-	"github.com/jth/claude/GoCode/pkg/correspondence"
-	"github.com/jth/claude/GoCode/pkg/document"
-	"github.com/jth/claude/GoCode/pkg/evidence"
-	"github.com/jth/claude/GoCode/pkg/interview"
+	"github.com/Jobikinobi/GoInspectorGadget/pkg/casefile"
+	"github.com/Jobikinobi/GoInspectorGadget/pkg/casemanagement"
+	"github.com/Jobikinobi/GoInspectorGadget/pkg/correspondence"
+	"github.com/Jobikinobi/GoInspectorGadget/pkg/document"
+	"github.com/Jobikinobi/GoInspectorGadget/pkg/evidence"
+	"github.com/Jobikinobi/GoInspectorGadget/pkg/interview"
 )
 
 // Simple in-memory repositories for demonstration
