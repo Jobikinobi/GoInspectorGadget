@@ -1,10 +1,13 @@
 package document
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 	"os"
+	"os/exec"
 	"path/filepath"
+	"strings"
 	"time"
 )
 
@@ -196,4 +199,233 @@ func GetDocumentTypeString(docType DocumentType) string {
 	default:
 		return "Unknown Document"
 	}
+}
+
+//-----------------------------------------------------------------------------
+// PDF Document Processor
+//-----------------------------------------------------------------------------
+
+// PDFProcessor implements DocumentProcessor for PDF files
+type PDFProcessor struct {
+	// Configuration
+	PdfToTextPath string // Path to pdftotext executable
+	UseOCR        bool   // Whether to use OCR for image-based PDFs
+	TempDir       string // Directory for temporary files
+}
+
+// Process processes a PDF file and returns a Document
+func (p *PDFProcessor) Process(filePath string) (*Document, error) {
+	// Check if file exists and is PDF
+	if !strings.HasSuffix(strings.ToLower(filePath), ".pdf") {
+		return nil, fmt.Errorf("not a PDF file: %s", filePath)
+	}
+
+	// Get file info
+	fileInfo, err := os.Stat(filePath)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get file info: %w", err)
+	}
+
+	// Extract text
+	text, err := p.ExtractText(filePath)
+	if err != nil {
+		return nil, fmt.Errorf("failed to extract text: %w", err)
+	}
+
+	// Extract metadata
+	metadata, err := p.ExtractMetadata(filePath)
+	if err != nil {
+		// Don't fail completely on metadata extraction failure
+		fmt.Printf("Warning: Failed to extract metadata from %s: %v\n", filePath, err)
+	}
+
+	// Create document
+	doc := &Document{
+		Title:       filepath.Base(filePath),
+		Type:        TypeUnknown, // Will need to be determined based on content
+		FilePath:    filePath,
+		ContentType: "application/pdf",
+		FileSize:    fileInfo.Size(),
+		Content:     text,
+		Metadata:    metadata,
+		CreatedAt:   time.Now(),
+		ModifiedAt:  time.Now(),
+	}
+
+	// Try to infer document type from content
+	doc.Type = inferDocumentType(doc)
+
+	return doc, nil
+}
+
+// ExtractText extracts text from a PDF file
+func (p *PDFProcessor) ExtractText(filePath string) (string, error) {
+	if p.PdfToTextPath == "" {
+		return "", fmt.Errorf("pdftotext not found, please install poppler-utils")
+	}
+
+	// Create temporary file for output
+	outputFile := filepath.Join(p.TempDir, fmt.Sprintf("%d.txt", time.Now().UnixNano()))
+	defer os.Remove(outputFile)
+
+	// Run pdftotext command
+	cmd := exec.Command(p.PdfToTextPath, "-layout", filePath, outputFile)
+	var stderr bytes.Buffer
+	cmd.Stderr = &stderr
+
+	if err := cmd.Run(); err != nil {
+		return "", fmt.Errorf("pdftotext failed: %w: %s", err, stderr.String())
+	}
+
+	// Read the output file
+	content, err := os.ReadFile(outputFile)
+	if err != nil {
+		return "", fmt.Errorf("failed to read extracted text: %w", err)
+	}
+
+	return string(content), nil
+}
+
+// ExtractMetadata extracts metadata from a PDF file
+func (p *PDFProcessor) ExtractMetadata(filePath string) (Metadata, error) {
+	metadata := Metadata{
+		CustomFields: make(map[string]string),
+	}
+
+	// Use pdfinfo to extract metadata
+	pdfinfoPath, err := exec.LookPath("pdfinfo")
+	if err != nil {
+		return metadata, fmt.Errorf("pdfinfo not found, please install poppler-utils")
+	}
+
+	cmd := exec.Command(pdfinfoPath, filePath)
+	var stdout bytes.Buffer
+	cmd.Stdout = &stdout
+
+	if err := cmd.Run(); err != nil {
+		return metadata, fmt.Errorf("pdfinfo failed: %w", err)
+	}
+
+	// Parse the output
+	output := stdout.String()
+	lines := strings.Split(output, "\n")
+	for _, line := range lines {
+		if line == "" {
+			continue
+		}
+
+		parts := strings.SplitN(line, ":", 2)
+		if len(parts) != 2 {
+			continue
+		}
+
+		key := strings.TrimSpace(parts[0])
+		value := strings.TrimSpace(parts[1])
+
+		switch key {
+		case "Title":
+			metadata.Subject = value
+		case "Author":
+			metadata.Author = value
+		case "Keywords":
+			metadata.Keywords = strings.Split(value, ", ")
+		case "CreationDate":
+			// Parse date in format: Thu Jan 1 00:00:00 2000
+			t, err := time.Parse("Mon Jan 2 15:04:05 2006", value)
+			if err == nil {
+				metadata.CreationDate = t
+			}
+		default:
+			// Store all other metadata in custom fields
+			metadata.CustomFields[key] = value
+		}
+	}
+
+	return metadata, nil
+}
+
+// inferDocumentType attempts to determine the document type based on content
+func inferDocumentType(doc *Document) DocumentType {
+	text := strings.ToLower(doc.Content)
+
+	// Police report indicators
+	if containsAny(text, []string{
+		"police report",
+		"incident report",
+		"offense report",
+		"case report",
+		"officer narrative",
+		"reporting officer",
+	}) {
+		return TypePoliceReport
+	}
+
+	// Witness statement indicators
+	if containsAny(text, []string{
+		"witness statement",
+		"statement of witness",
+		"i, the undersigned",
+		"do hereby state",
+		"to the best of my recollection",
+		"i witnessed",
+		"i observed",
+	}) {
+		return TypeWitnessStatement
+	}
+
+	// Forensic report indicators
+	if containsAny(text, []string{
+		"forensic report",
+		"laboratory report",
+		"examination results",
+		"dna analysis",
+		"ballistics report",
+		"toxicology report",
+		"fingerprint analysis",
+	}) {
+		return TypeForensicReport
+	}
+
+	// Court filing indicators
+	if containsAny(text, []string{
+		"court of",
+		"state vs",
+		"plaintiff",
+		"defendant",
+		"motion to",
+		"hereby ordered",
+		"judge",
+		"docket",
+		"hearing",
+		"trial",
+	}) {
+		return TypeCourtFiling
+	}
+
+	// Medical report indicators
+	if containsAny(text, []string{
+		"medical report",
+		"patient name",
+		"diagnosis",
+		"treatment",
+		"physician",
+		"hospital",
+		"medical record",
+		"symptoms",
+	}) {
+		return TypeMedicalReport
+	}
+
+	// Default to unknown
+	return TypeUnknown
+}
+
+// containsAny checks if the text contains any of the keywords
+func containsAny(text string, keywords []string) bool {
+	for _, keyword := range keywords {
+		if strings.Contains(text, keyword) {
+			return true
+		}
+	}
+	return false
 }

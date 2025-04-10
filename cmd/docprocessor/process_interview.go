@@ -9,7 +9,11 @@ import (
 	"strings"
 )
 
-func main() {
+// processInterviewAudio handles the processing of interview audio files
+func processInterviewAudio() {
+	// This function will be used to process interview audio with speaker diarization
+	fmt.Println("Processing interview audio...")
+
 	// Parse command line arguments
 	inputFile := flag.String("input", "", "Input audio file path")
 	outputFile := flag.String("output", "transcript.txt", "Output transcript file path")
