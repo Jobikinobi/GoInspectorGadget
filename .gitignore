@@ -11,15 +11,11 @@
 # Output of the go coverage tool
 *.out
 
-# Dependency directories (remove the comment below to include it)
-# vendor/
+# Dependency directories
+vendor/
 
 # Go workspace file
 go.work
-
-# Binary files
-/cmd/investigator/investigator
-/cmd/docprocessor/docprocessor
 
 # IDE files
 .idea/
@@ -31,5 +27,14 @@ go.work
 .DS_Store
 Thumbs.db
 
+# Binary output directory
+bin/
+
 # Build artifacts
-bin/ 
+docprocessor
+investigator
+**/docprocessor/docprocessor
+**/investigator/investigator
+
+# Backup files
+*.bak
