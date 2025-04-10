@@ -81,7 +81,13 @@ func (app *InvestigatorApp) initializeServices() {
 	// Initialize document service
 	tempDir := filepath.Join(app.workingDir, "temp")
 	os.MkdirAll(tempDir, 0755)
-	app.documentService = document.NewPDFProcessor("", false, tempDir)
+	// Create a new PDF processor for document handling
+	pdfProcessor := &document.PDFProcessor{
+		PdfToTextPath: "",
+		UseOCR:        false,
+		TempDir:       tempDir,
+	}
+	app.documentService = pdfProcessor
 
 	// Initialize evidence repository implementation
 	evidenceRepo := &inMemoryEvidenceRepo{evidence: app.repo.evidence}

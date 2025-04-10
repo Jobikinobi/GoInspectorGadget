@@ -12,6 +12,8 @@ import (
 )
 
 func main() {
+	// This function has been moved from process_interview.go to cmd/interview/main.go
+	// as part of the code reorganization
 	processAudio()
 }
 

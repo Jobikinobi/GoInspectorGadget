@@ -21,8 +21,14 @@ const (
 	TypeEvidence
 	TypeMedicalReport
 	TypeTranscript
+	TypePersonalIdentification
 	TypeBackground
 	TypeNote
+	TypeForensicAnalysis
+	TypeCourtDocument
+	TypeMedicalRecord
+	TypeEvidenceItem
+	TypeTranscriptRecord
 )
 
 // Document represents any document in the investigation system
@@ -77,8 +83,6 @@ type Annotation struct {
 // DocumentProcessor defines the interface for processing different document types
 type DocumentProcessor interface {
 	Process(filePath string) (*Document, error)
-	ExtractText(filePath string) (string, error)
-	ExtractMetadata(filePath string) (Metadata, error)
 }
 
 // DocumentRepository defines the interface for document storage
@@ -173,10 +177,22 @@ func GetDocumentTypeString(docType DocumentType) string {
 		return "Medical Report"
 	case TypeTranscript:
 		return "Transcript"
+	case TypePersonalIdentification:
+		return "Personal Identification"
 	case TypeBackground:
 		return "Background Information"
 	case TypeNote:
 		return "Investigator Note"
+	case TypeForensicAnalysis:
+		return "Forensic Analysis"
+	case TypeCourtDocument:
+		return "Court Document"
+	case TypeMedicalRecord:
+		return "Medical Record"
+	case TypeEvidenceItem:
+		return "Evidence Item"
+	case TypeTranscriptRecord:
+		return "Transcript Record"
 	default:
 		return "Unknown Document"
 	}

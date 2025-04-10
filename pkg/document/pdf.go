@@ -18,15 +18,20 @@ const (
 	TypePoliceReport
 	TypeWitnessStatement
 	TypeForensicReport
-	TypeCourtFiling
-	TypeMedicalReport
+	// TypeCourtFiling - Using TypeCourtDocument instead
+	// TypeMedicalReport - Using TypeMedicalRecord instead
 	TypePersonalIdentification
-	TypeEvidence
-	TypeTranscript
+	// TypeEvidence - Using TypeEvidenceItem instead
+	// TypeTranscript - Using TypeTranscriptRecord instead
+	TypeForensicAnalysis
+	TypeCourtDocument
+	TypeMedicalRecord
+	TypeEvidenceItem
+	TypeTranscriptRecord
 )
 
-// Metadata contains document metadata
-type Metadata struct {
+// PDFMetadata contains document metadata for PDF files
+type PDFMetadata struct {
 	Author       string
 	Subject      string
 	Keywords     []string
@@ -48,7 +53,7 @@ type Document struct {
 	Content     string
 	Metadata    Metadata
 	CreatedAt   time.Time
-	UpdatedAt   time.Time
+	ModifiedAt  time.Time
 }
 
 // DocumentProcessor defines the interface for document processors
@@ -71,7 +76,7 @@ func ImportDocument(filePath, destDir string, processor DocumentProcessor) (*Doc
 
 	// Set creation time
 	doc.CreatedAt = time.Now()
-	doc.UpdatedAt = doc.CreatedAt
+	doc.ModifiedAt = doc.CreatedAt
 
 	// Generate ID if not set
 	if doc.ID == "" {
@@ -165,6 +170,8 @@ func (p *PDFProcessor) Process(filePath string) (*Document, error) {
 		FileSize:    fileInfo.Size(),
 		Content:     text,
 		Metadata:    metadata,
+		CreatedAt:   time.Now(),
+		ModifiedAt:  time.Now(),
 	}
 
 	// Try to infer document type from content

@@ -1,5 +1,10 @@
 package correspondence
 
+// Define missing correspondence types
+const (
+	TypeEvidence CorrespondenceType = "EVIDENCE"
+)
+
 // This file contains predefined templates for common police correspondence
 
 // GetDefaultTemplates returns a list of default correspondence templates
