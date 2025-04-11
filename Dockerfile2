@@ -1,0 +1,48 @@
+# --- Builder Stage ---
+FROM golang:1.24-alpine AS builder
+
+# Install git, build essentials, and FFmpeg
+RUN apk add --no-cache git build-base ffmpeg
+
+# Set the working directory
+WORKDIR /app
+
+# Copy go.mod and go.sum first for better caching
+COPY go.mod go.sum ./
+RUN go mod tidy && go mod download && go mod verify
+
+# Copy the rest of the application source code
+COPY . .
+
+# Build both applications
+# Building the investigator binary
+RUN CGO_ENABLED=0 go build -v -o /go-inspector-gadget/investigator ./cmd/investigator
+# Building the docprocessor binary
+RUN CGO_ENABLED=0 go build -v -o /go-inspector-gadget/docprocessor ./cmd/docprocessor
+
+# --- Final Stage ---
+FROM alpine:latest
+
+# Install FFmpeg and ca-certificates
+RUN apk --no-cache add ca-certificates ffmpeg
+
+WORKDIR /app/
+
+# Create directories for data storage
+RUN mkdir -p /app/data /app/config
+
+# Copy binaries from the builder stage
+COPY --from=builder /go-inspector-gadget/ /usr/local/bin/
+
+# Make binaries executable
+RUN chmod +x /usr/local/bin/investigator /usr/local/bin/docprocessor
+
+# Set environment variables
+ENV PATH="/usr/local/bin:${PATH}"
+
+# Uncomment if your app serves on a port
+# EXPOSE 8080
+
+# Default command shows help
+ENTRYPOINT ["investigator"]
+CMD ["--help"]

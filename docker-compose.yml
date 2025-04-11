@@ -1,0 +1,19 @@
+services:
+  goinspectorgadget:
+    image: goinspectorgadget
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    ports:
+      - 3000:3000
+    volumes:
+      - ./data:/app/data
+    environment:
+      - LOG_LEVEL=info
+    # Health check configuration
+    healthcheck:
+      test: [CMD, /app/app, help]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
